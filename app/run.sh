@@ -6,7 +6,6 @@ echo "Inspiration by Raphael Murray https://github.com/raphmur"
 echo "Instructions by Shankar Kumarasamy https://shankarkumarasamy.blog/2024/01/28/tesla-developer-api-guide-ble-key-pair-auth-and-vehicle-commands-part-3"
 
 echo "Configuration Options are:"
-echo TESLA_VIN=$TESLA_VIN
 echo MQTT_IP=$MQTT_IP
 echo MQTT_PORT=$MQTT_PORT
 echo MQTT_USER=$MQTT_USER
@@ -15,7 +14,7 @@ echo "MQTT_PWD=Not Shown"
 send_command() {
  for i in $(seq 5); do
   echo "Attempt $i/5"
-  tesla-control -ble -vin $2 -key-name private.pem -key-file private.pem $1
+  tesla-control -ble -vin $selected_vin -key-name private.pem -key-file private.pem $1
   if [ $? -eq 0 ]; then
     echo "Ok"
     break
@@ -55,27 +54,30 @@ do
      esac;;
     
     tesla_ble/command)
-     echo "Command $msg requested for VIN $selected_vin"
+     echo "Command $msg requested"
      case $msg in
+       VIN)
+        echo "Received new VIN"
+        selected_vin = $msg;;
        trunk-open)
         echo "Opening Trunk"
-        send_command $msg $selected_vin;;
+        send_command $msg;;
        trunk-close)
         echo "Closing Trunk"
-        send_command $msg $selected_vin;;
+        send_command $msg;;
        charging-start)
         echo "Start Charging"
-        send_command $msg $selected_vin;; 
+        send_command $msg;; 
        charging-stop)
         echo "Stop Charging"
-        send_command $msg $selected_vin;;         
+        send_command $msg;;         
        *)
-        echo "Invalid Command Request for VIN $selected_vin";;
+        echo "Invalid Command Request";;
       esac;;
       
     tesla_ble/charging-amps)
-     echo Set Charging Amps to $msg requested to VIN $selected_vin
-     send_command "charging-set-amps $msg $selected_vin";;
+     echo Set Charging Amps to $msg requested
+     send_command "charging-set-amps $msg";;
     *)
      echo "Invalid MQTT topic";;
    esac
